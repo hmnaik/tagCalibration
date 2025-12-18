@@ -2,6 +2,35 @@
 
 A comprehensive Python application for detecting, tracking, and analyzing ArUco markers in 3D space. Features real-time camera tracking, automatic camera calibration, trajectory analysis with speed/velocity/angular metrics, and advanced visualization tools.
 
+## Table of Contents
+
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Quick Start Guide](#quick-start-guide)
+- [Documentation](#documentation)
+- [Module Documentation](#module-documentation)
+- [Example Workflows](#example-workflows)
+- [Troubleshooting](#troubleshooting)
+
+## Prerequisites
+
+**IMPORTANT: Camera calibration is required for accurate 3D measurements!**
+
+Before tracking markers, you must calibrate your camera:
+1. Generate and print a checkerboard pattern
+2. Run the calibration module
+3. The calibration will automatically update your config.py
+
+**See [CALIBRATION_GUIDE.md](CALIBRATION_GUIDE.md) for complete step-by-step instructions.**
+
+Quick calibration command:
+```bash
+python camera_calibration.py --mode live
+```
+
+Without proper calibration, 3D position measurements may be significantly inaccurate.
+
 ## Features
 
 ### Core Tracking
@@ -60,6 +89,17 @@ pip install -r requirements.txt
 - pandas (data analysis)
 - scipy (signal processing)
 
+## Documentation
+
+This README provides an overview. For detailed instructions, see:
+
+| Document | Purpose |
+|----------|---------|
+| **[CALIBRATION_GUIDE.md](CALIBRATION_GUIDE.md)** | Complete camera calibration instructions with troubleshooting |
+| **[LIVE_TRACKER_GUIDE.md](LIVE_TRACKER_GUIDE.md)** | Live tracking detailed usage and controls |
+| **[ANALYSIS_GUIDE.md](ANALYSIS_GUIDE.md)** | Comprehensive trajectory analysis guide with examples |
+| **[TIMESTAMP_FEATURE.md](TIMESTAMP_FEATURE.md)** | Timestamp feature technical documentation |
+
 ## Quick Start Guide
 
 ### Complete Workflow (Recommended)
@@ -68,7 +108,8 @@ pip install -r requirements.txt
 # 1. Activate environment
 venv\Scripts\activate
 
-# 2. Camera Calibration (first time only)
+# 2. Camera Calibration (REQUIRED - first time only)
+#    See CALIBRATION_GUIDE.md for detailed instructions
 python camera_calibration.py --mode live
 
 # 3. Live Tracking
@@ -79,6 +120,8 @@ python trajectory_analysis.py live_trajectory.csv --full-report
 
 # 5. View results in analysis_output/ folder
 ```
+
+**Note:** For detailed instructions on each step, refer to the [Documentation](#documentation) section below.
 
 ## Module Documentation
 
@@ -124,7 +167,7 @@ python camera_calibration.py --mode images --input "calib_images/*.jpg"
 - Automatic config.py update
 - Calibration data backup (.npz file)
 
-**Documentation:** See `CALIBRATION_GUIDE.md` for detailed instructions
+**📖 Detailed Guide:** [CALIBRATION_GUIDE.md](CALIBRATION_GUIDE.md) - Complete instructions, best practices, and troubleshooting
 
 ---
 
@@ -162,7 +205,7 @@ python live_tracker.py \
 - `live_trajectory.csv` - Trajectory data with timestamps
 - `live_animation.mp4` - 3D animated visualization
 
-**Documentation:** See `LIVE_TRACKER_GUIDE.md` for detailed usage
+**📖 Detailed Guide:** [LIVE_TRACKER_GUIDE.md](LIVE_TRACKER_GUIDE.md) - Controls, tips, and advanced usage
 
 ---
 
@@ -263,7 +306,7 @@ python trajectory_analysis.py data.csv \
     --no-show                    # Don't display plots
 ```
 
-**Documentation:** See `ANALYSIS_GUIDE.md` for detailed usage
+**📖 Detailed Guide:** [ANALYSIS_GUIDE.md](ANALYSIS_GUIDE.md) - All metrics explained, formulas, and Python examples
 
 ---
 
@@ -338,7 +381,7 @@ RECOMMENDATION: Use 'DICT_4X4_50' in config.py
 ARUCO_DICT_TYPE = 'DICT_4X4_50'
 MARKER_SIZE = 0.05  # meters (5cm)
 
-# Camera calibration (updated by camera_calibration.py)
+# Camera calibration (AUTOMATICALLY updated by camera_calibration.py)
 CAMERA_MATRIX = [
     [fx, 0, cx],
     [0, fy, cy],
@@ -353,7 +396,8 @@ OUTPUT_VIDEO_FILE = 'output_with_3d_coords.mp4'
 PLOT_OUTPUT_FILE = 'trajectory_3d.png'
 ```
 
-**Note:** Run `camera_calibration.py` to automatically update camera parameters!
+**IMPORTANT:** Run `camera_calibration.py` to automatically update camera parameters!
+**See:** [CALIBRATION_GUIDE.md](CALIBRATION_GUIDE.md) for complete calibration instructions.
 
 ## Coordinate System
 
@@ -386,14 +430,16 @@ timestamp,frame,marker_id,x,y,z,rx,ry,rz
 
 ### Workflow 1: Live Tracking & Analysis
 
+For complete beginner-friendly instructions, see [CALIBRATION_GUIDE.md](CALIBRATION_GUIDE.md) and [LIVE_TRACKER_GUIDE.md](LIVE_TRACKER_GUIDE.md).
+
 ```bash
-# 1. Calibrate (first time only)
+# 1. Calibrate (first time only) - See CALIBRATION_GUIDE.md
 python camera_calibration.py --mode live
 
-# 2. Track live
+# 2. Track live - See LIVE_TRACKER_GUIDE.md
 python live_tracker.py --marker-size 0.05
 
-# 3. Analyze
+# 3. Analyze - See ANALYSIS_GUIDE.md
 python trajectory_analysis.py live_trajectory.csv --full-report
 ```
 
@@ -477,7 +523,11 @@ tagCalibration/
 
 ## Troubleshooting
 
+For complete troubleshooting guides, see the detailed documentation files linked below.
+
 ### Camera Calibration Issues
+
+**See [CALIBRATION_GUIDE.md](CALIBRATION_GUIDE.md) for complete calibration troubleshooting.**
 
 **Problem:** No checkerboard detected
 
@@ -517,6 +567,8 @@ tagCalibration/
 
 ### Analysis Issues
 
+**See [ANALYSIS_GUIDE.md](ANALYSIS_GUIDE.md) for detailed analysis troubleshooting and examples.**
+
 **Problem:** Missing timestamp column
 
 **Solutions:**
@@ -542,12 +594,16 @@ tagCalibration/
 
 ## Best Practices
 
+For detailed best practices and tips, see the individual guide documents.
+
 ### For Calibration:
 ✅ Use rigid, flat checkerboard
 ✅ Collect 20-30 images
 ✅ Vary angles and distances
 ✅ Cover entire camera view
 ✅ Measure square size accurately
+
+**See [CALIBRATION_GUIDE.md](CALIBRATION_GUIDE.md) for detailed calibration best practices.**
 
 ### For Tracking:
 ✅ Calibrate camera first
@@ -556,12 +612,16 @@ tagCalibration/
 ✅ Keep marker flat and rigid
 ✅ Measure marker size precisely
 
+**See [LIVE_TRACKER_GUIDE.md](LIVE_TRACKER_GUIDE.md) for tracking tips and techniques.**
+
 ### For Analysis:
 ✅ Review summary statistics first
 ✅ Check for outliers in plots
 ✅ Verify physical plausibility
 ✅ Export to CSV for detailed analysis
 ✅ Compare multiple trials
+
+**See [ANALYSIS_GUIDE.md](ANALYSIS_GUIDE.md) for analysis workflows and Python examples.**
 
 ## Integration Examples
 
@@ -636,15 +696,15 @@ for video in *.mp4; do
 done
 ```
 
-## Documentation
+## Complete Documentation Index
 
 | Document | Description |
 |----------|-------------|
-| `README.md` | Main documentation (this file) |
-| `CALIBRATION_GUIDE.md` | Camera calibration instructions |
-| `LIVE_TRACKER_GUIDE.md` | Live tracking detailed guide |
-| `ANALYSIS_GUIDE.md` | Trajectory analysis guide |
-| `TIMESTAMP_FEATURE.md` | Timestamp feature documentation |
+| `README.md` | Main documentation (this file) - Overview and quick reference |
+| **[CALIBRATION_GUIDE.md](CALIBRATION_GUIDE.md)** | Complete camera calibration instructions with troubleshooting |
+| **[LIVE_TRACKER_GUIDE.md](LIVE_TRACKER_GUIDE.md)** | Live tracking detailed guide with controls and tips |
+| **[ANALYSIS_GUIDE.md](ANALYSIS_GUIDE.md)** | Trajectory analysis guide with formulas and examples |
+| **[TIMESTAMP_FEATURE.md](TIMESTAMP_FEATURE.md)** | Technical documentation for timestamp feature |
 
 ## Dependencies
 
@@ -665,9 +725,10 @@ This project is open source and available for educational and research purposes.
 ## Support
 
 For issues, questions, or feature requests, please refer to the documentation files:
-- Calibration issues: See `CALIBRATION_GUIDE.md`
-- Tracking issues: See `LIVE_TRACKER_GUIDE.md`
-- Analysis questions: See `ANALYSIS_GUIDE.md`
+- **Calibration issues:** See [CALIBRATION_GUIDE.md](CALIBRATION_GUIDE.md)
+- **Tracking issues:** See [LIVE_TRACKER_GUIDE.md](LIVE_TRACKER_GUIDE.md)
+- **Analysis questions:** See [ANALYSIS_GUIDE.md](ANALYSIS_GUIDE.md)
+- **Timestamp questions:** See [TIMESTAMP_FEATURE.md](TIMESTAMP_FEATURE.md)
 
 ---
 
