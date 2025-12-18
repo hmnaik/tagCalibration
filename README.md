@@ -1,30 +1,49 @@
 # ArUco Marker 3D Trajectory Tracker
 
-A Python application for detecting and tracking ArUco markers in 3D space from video files. The application estimates the 3D pose of ArUco markers, tracks their trajectory over time, and provides visualization tools for both the trajectory data and video overlay.
+A comprehensive Python application for detecting, tracking, and analyzing ArUco markers in 3D space. Features real-time camera tracking, automatic camera calibration, trajectory analysis with speed/velocity/angular metrics, and advanced visualization tools.
 
 ## Features
 
+### Core Tracking
 - **3D Pose Estimation**: Detect ArUco markers and estimate their 3D position and orientation
+- **Live Camera Tracking**: Real-time ArUco detection from webcam with interactive recording
+- **Video Processing**: Track markers from pre-recorded video files
 - **Trajectory Tracking**: Track marker movement through 3D space over time
-- **Live Camera Tracking**: Real-time ArUco detection and tracking from webcam (NEW!)
-- **Data Export**: Save trajectory data to CSV format
-- **3D Visualization**: Generate interactive 3D plots of marker trajectories
-- **3D Animation Videos**: Create animated 3D trajectory videos with rotating views (NEW!)
-- **Video Overlay**: Create annotated videos with 3D coordinates and axes overlaid
-- **Configurable Parameters**: Easy configuration of marker size and camera calibration
-- **Dictionary Detection**: Automatic detection of ArUco dictionary type
+- **Timestamp Data**: All trajectories include precise timestamps for temporal analysis
+
+### Calibration
+- **Automatic Camera Calibration**: Interactive calibration with checkerboard pattern
+- **Multiple Calibration Modes**: Live camera, video file, or image sequence
+- **Quality Metrics**: Reprojection error analysis and quality assessment
+- **Auto-Config Update**: Automatically updates config.py with calibration results
+- **Checkerboard Generator**: Create custom calibration patterns for printing
+
+### Analysis & Visualization
+- **Comprehensive Analysis**: Calculate speed, velocity, distance, acceleration, and angular metrics
+- **5 Analysis Plot Types**: Position, velocity, distance, angular rotation, and acceleration
+- **3D Animation Videos**: Create animated trajectory videos with rotating camera views
+- **Video Overlay**: Annotate videos with 3D coordinates and axes
+- **Data Export**: Export analysis results to CSV for Excel/Python integration
+- **Statistical Reports**: Detailed summary statistics with all motion metrics
+
+### Utilities
+- **Dictionary Detection**: Automatically detect ArUco dictionary type
+- **Multi-Marker Support**: Track multiple markers simultaneously
+- **Configurable Parameters**: Easy configuration of marker size and camera settings
 
 ## Installation
 
-### 1. Activate Virtual Environment
+### 1. Create Virtual Environment (if not already created)
 
 Windows:
 ```bash
+python -m venv venv
 venv\Scripts\activate
 ```
 
 Linux/Mac:
 ```bash
+python3 -m venv venv
 source venv/bin/activate
 ```
 
@@ -34,43 +53,84 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Configuration
+**Dependencies:**
+- opencv-contrib-python (ArUco detection)
+- numpy (numerical operations)
+- matplotlib (plotting and visualization)
+- pandas (data analysis)
+- scipy (signal processing)
 
-Before processing videos, update the `config.py` file with your specific parameters:
+## Quick Start Guide
 
-### Camera Calibration
+### Complete Workflow (Recommended)
 
-**Important**: For accurate 3D measurements, you must calibrate your camera and update these values:
+```bash
+# 1. Activate environment
+venv\Scripts\activate
 
-```python
-# Example camera matrix (replace with your calibration data)
-CAMERA_MATRIX = [
-    [fx, 0, cx],
-    [0, fy, cy],
-    [0, 0, 1]
-]
+# 2. Camera Calibration (first time only)
+python camera_calibration.py --mode live
 
-# Distortion coefficients [k1, k2, p1, p2, k3]
-DIST_COEFFS = [k1, k2, p1, p2, k3]
+# 3. Live Tracking
+python live_tracker.py --marker-size 0.05
+
+# 4. Analyze Trajectory
+python trajectory_analysis.py live_trajectory.csv --full-report
+
+# 5. View results in analysis_output/ folder
 ```
 
-To calibrate your camera, you can use OpenCV's camera calibration tools or online tutorials.
+## Module Documentation
 
-### Marker Settings
+### 1. Camera Calibration Module
 
-```python
-# Size of your ArUco marker in meters
-MARKER_SIZE = 0.05  # Example: 5cm marker
+**Purpose:** Calibrate your camera for accurate 3D measurements
 
-# ArUco dictionary type
-ARUCO_DICT_TYPE = 'DICT_4X4_50'  # Options: DICT_4X4_50, DICT_5X5_100, etc.
+#### Generate Checkerboard Pattern
+
+```bash
+# Generate standard 9x6 checkerboard (25mm squares)
+python generate_checkerboard.py --output checkerboard.png
+
+# Print at 100% scale, mount on rigid board
 ```
 
-## Usage
+#### Run Calibration
 
-### 1. Live Camera Tracking (NEW!)
+**Live Camera (Recommended):**
+```bash
+python camera_calibration.py --mode live --checkerboard 9x6 --square-size 0.025
+```
 
-Track ArUco markers in real-time from your webcam with automatic 3D animation generation:
+Controls:
+- **C** - Toggle auto-capture ON/OFF
+- **SPACE** - Manual capture
+- **Q** - Quit and calibrate
+
+**From Video:**
+```bash
+python camera_calibration.py --mode video --input calibration_video.mp4
+```
+
+**From Images:**
+```bash
+python camera_calibration.py --mode images --input "calib_images/*.jpg"
+```
+
+**Features:**
+- Real-time checkerboard detection
+- Interactive auto/manual capture
+- Quality metrics (reprojection error)
+- Automatic config.py update
+- Calibration data backup (.npz file)
+
+**Documentation:** See `CALIBRATION_GUIDE.md` for detailed instructions
+
+---
+
+### 2. Live Tracker Module
+
+**Purpose:** Real-time ArUco tracking from webcam
 
 ```bash
 python live_tracker.py
@@ -81,205 +141,538 @@ python live_tracker.py
 - **Q** - Quit and generate 3D animation
 
 **Features:**
-- Real-time ArUco marker detection and 3D pose estimation
-- Live video display with 3D coordinate axes overlay
-- Records trajectory data only when you press SPACE
-- Automatically generates 3D animation video when done
-- Does NOT save the webcam video (only trajectory and animation)
+- Real-time marker detection and 3D pose display
+- Live video with coordinate axes overlay
+- Selective recording (only when you press SPACE)
+- Timestamp tracking (starts at 0.0 when recording begins)
+- Automatic 3D animation generation
+- Does NOT save webcam video (saves space)
 
-Options:
-- `--camera`: Camera device ID (default: 0)
-- `--marker-size`: Marker size in meters
-- `--output`: CSV output file (default: live_trajectory.csv)
-- `--animation`: Animation output file (default: live_animation.mp4)
-- `--no-animation`: Skip 3D animation generation
-
-Example:
+**Options:**
 ```bash
-# Use camera 0, marker size 5cm, custom output files
-python live_tracker.py --camera 0 --marker-size 0.05 --output my_data.csv --animation my_anim.mp4
+python live_tracker.py \
+    --camera 0 \
+    --marker-size 0.05 \
+    --output my_data.csv \
+    --animation my_anim.mp4 \
+    --no-animation  # Skip animation
 ```
 
-**Workflow:**
-1. Run the script - live camera feed opens
-2. Position ArUco marker in view
-3. Press SPACE to start recording trajectory
-4. Move the marker around
-5. Press SPACE to stop recording
-6. Press Q to quit
-7. 3D animation video is automatically generated!
+**Output:**
+- `live_trajectory.csv` - Trajectory data with timestamps
+- `live_animation.mp4` - 3D animated visualization
 
-### 2. Track ArUco Markers from Video File
+**Documentation:** See `LIVE_TRACKER_GUIDE.md` for detailed usage
 
-Process a video file to detect ArUco markers and save trajectory data:
+---
 
-```bash
-python aruco_tracker.py path/to/video.mp4
-```
+### 3. Video Processor Module
 
-Options:
-- `--marker-size`: Specify marker size in meters (overrides config.py)
-- `--output`: Specify output CSV file path
-
-Example:
-```bash
-python aruco_tracker.py my_video.mp4 --marker-size 0.05 --output trajectory.csv
-```
-
-This will create a CSV file with columns:
-- `frame`: Frame number
-- `marker_id`: ArUco marker ID
-- `x, y, z`: 3D position in meters
-- `rx, ry, rz`: Rotation angles in radians
-
-### 3. Visualize 3D Trajectory
-
-Create 3D plots and animated videos from trajectory data:
+**Purpose:** Track ArUco markers from video files
 
 ```bash
-python visualize_trajectory.py trajectory_data.csv
+python aruco_tracker.py video.mp4 --marker-size 0.05
 ```
 
-Options:
-- `--marker-id`: Visualize specific marker ID only
-- `--save`: Save plot to file
-- `--no-show`: Don't display the plot window
+**Features:**
+- Process pre-recorded videos
+- Automatic timestamp calculation (from FPS)
+- Frame-by-frame detection
+- Progress tracking
 
-Example:
+**Options:**
 ```bash
-python visualize_trajectory.py trajectory_data.csv --marker-id 0 --save output_plot.png
+python aruco_tracker.py video.mp4 \
+    --marker-size 0.05 \
+    --output trajectory.csv
 ```
 
-This generates:
-- Interactive 3D trajectory plot
-- Position vs. time plots for X, Y, Z coordinates
-- Statistics (range, distance traveled, etc.)
+**Output CSV Columns:**
+- `timestamp` - Time in seconds (from video start)
+- `frame` - Frame number
+- `marker_id` - ArUco marker ID
+- `x, y, z` - 3D position (meters)
+- `rx, ry, rz` - 3D rotation (radians)
 
-**Create 3D Animation Video:**
-```bash
-python visualize_trajectory.py trajectory_data.csv --animate --video-output my_animation.mp4
-```
+---
 
-Animation options:
-- `--animate`: Enable animation mode
-- `--video-output`: Output filename (default: trajectory_animation.mp4)
-- `--duration`: Video duration in seconds (default: 10)
-- `--fps`: Frames per second (default: 30)
-- `--rotation-speed`: Rotation speed multiplier (default: 1.0)
+### 4. Trajectory Analysis Module
 
-The animation shows:
-- 3D trajectory building up over time
-- Rotating camera view for depth perception
-- Coordinate axes at origin (X=red, Y=green, Z=blue)
-- Current marker position highlighted
+**Purpose:** Comprehensive motion analysis with graphs and statistics
 
-### 4. Create Annotated Video
-
-Overlay 3D coordinates and axes on the video:
+#### Quick Analysis
 
 ```bash
-python visualize_on_video.py path/to/video.mp4
+# Summary statistics
+python trajectory_analysis.py data.csv --summary
+
+# Full report (all plots + CSV export)
+python trajectory_analysis.py data.csv --full-report
 ```
 
-Options:
-- `--marker-size`: Specify marker size in meters
-- `--output`: Specify output video file path
-- `--show`: Display video in real-time while processing
+#### Specific Plots
 
-Example:
 ```bash
-python visualize_on_video.py my_video.mp4 --output annotated.mp4 --show
+# Position over time
+python trajectory_analysis.py data.csv --plot position
+
+# Velocity analysis
+python trajectory_analysis.py data.csv --plot velocity
+
+# Distance traveled
+python trajectory_analysis.py data.csv --plot distance
+
+# Angular rotation (rotation angles over time)
+python trajectory_analysis.py data.csv --plot angular
+
+# Acceleration analysis
+python trajectory_analysis.py data.csv --plot acceleration
+
+# All plots
+python trajectory_analysis.py data.csv --plot all
 ```
 
-The output video will show:
-- Detected marker boundaries
-- 3D coordinate axes (X=red, Y=green, Z=blue)
-- Real-time 3D position coordinates
+**Metrics Calculated:**
+
+| Category | Metrics |
+|----------|---------|
+| **Position** | X, Y, Z coordinates, position ranges |
+| **Velocity** | Vx, Vy, Vz components, speed magnitude, avg/max/min |
+| **Distance** | Total distance, cumulative distance, per-step distance |
+| **Acceleration** | Ax, Ay, Az components, acceleration magnitude |
+| **Angular** | RX, RY, RZ angles (degrees), angular velocity, angular speed |
+| **Time** | Duration, sample rate, timestamps |
+
+**Output (Full Report):**
+```
+analysis_output/
+├── position_vs_time.png       # X, Y, Z over time
+├── velocity_analysis.png      # Velocity components + speed
+├── distance_analysis.png      # Distance traveled
+├── angular_analysis.png       # Rotation angles + angular speed
+├── acceleration_analysis.png  # Acceleration components
+└── analysis_metrics.csv       # All calculated metrics
+```
+
+**Options:**
+```bash
+python trajectory_analysis.py data.csv \
+    --marker-id 0 \              # Specific marker
+    --output-dir my_analysis \   # Custom output folder
+    --export metrics.csv \       # Export to custom CSV
+    --no-show                    # Don't display plots
+```
+
+**Documentation:** See `ANALYSIS_GUIDE.md` for detailed usage
+
+---
+
+### 5. Visualization Modules
+
+#### 3D Trajectory Plots & Animation
+
+```bash
+# Static 3D plots
+python visualize_trajectory.py data.csv --save plot.png
+
+# Animated 3D video
+python visualize_trajectory.py data.csv --animate --video-output anim.mp4
+```
+
+**Animation Features:**
+- Trajectory builds up over time
+- Rotating 3D camera view
+- Coordinate axes at origin
+- Current position highlighted
+- Customizable duration and FPS
+
+**Options:**
+```bash
+python visualize_trajectory.py data.csv \
+    --animate \
+    --video-output animation.mp4 \
+    --duration 10 \
+    --fps 30 \
+    --rotation-speed 1.0
+```
+
+#### Video Overlay
+
+```bash
+python visualize_on_video.py video.mp4 --output annotated.mp4
+```
+
+**Features:**
+- 3D coordinate axes on markers
+- Real-time position display
 - Frame numbers
+- Detection status
 
-## Complete Workflow Example
+---
+
+### 6. Utility Modules
+
+#### Test ArUco Dictionaries
+
+Automatically detect which ArUco dictionary your markers use:
 
 ```bash
-# 1. Activate virtual environment
-venv\Scripts\activate
+python test_aruco_dictionaries.py video.mp4
+```
 
-# 2. Track markers and save trajectory
-python aruco_tracker.py sample_video.mp4 --marker-size 0.05
+**Output:**
+```
+Dictionary: DICT_4X4_50
+  Marker IDs detected: [0]
+  Detection rate: 73.3%
 
-# 3. Visualize trajectory in 3D
-python visualize_trajectory.py trajectory_data.csv --save trajectory_plot.png
+RECOMMENDATION: Use 'DICT_4X4_50' in config.py
+```
+
+## Configuration
+
+### config.py Settings
+
+```python
+# ArUco marker parameters
+ARUCO_DICT_TYPE = 'DICT_4X4_50'
+MARKER_SIZE = 0.05  # meters (5cm)
+
+# Camera calibration (updated by camera_calibration.py)
+CAMERA_MATRIX = [
+    [fx, 0, cx],
+    [0, fy, cy],
+    [0, 0, 1]
+]
+
+DIST_COEFFS = [k1, k2, p1, p2, k3]
+
+# Output settings
+OUTPUT_TRAJECTORY_FILE = 'trajectory_data.csv'
+OUTPUT_VIDEO_FILE = 'output_with_3d_coords.mp4'
+PLOT_OUTPUT_FILE = 'trajectory_3d.png'
+```
+
+**Note:** Run `camera_calibration.py` to automatically update camera parameters!
+
+## Coordinate System
+
+The 3D coordinate system:
+- **X-axis (Red)**: Right of the marker
+- **Y-axis (Green)**: Down from the marker
+- **Z-axis (Blue)**: Away from camera (depth)
+- **Origin (0,0,0)**: Top-left corner of ArUco marker
+
+## CSV Data Format
+
+All trajectory CSV files include:
+
+```csv
+timestamp,frame,marker_id,x,y,z,rx,ry,rz
+0.000,0,0,0.1135,0.0684,0.3697,3.1131,-0.0130,0.0598
+0.039,1,0,0.1141,0.0694,0.3723,3.1244,-0.0276,0.0516
+...
+```
+
+| Column | Description | Unit |
+|--------|-------------|------|
+| timestamp | Time since start | seconds |
+| frame | Frame number | - |
+| marker_id | ArUco marker ID | - |
+| x, y, z | 3D position | meters |
+| rx, ry, rz | 3D rotation | radians |
+
+## Example Workflows
+
+### Workflow 1: Live Tracking & Analysis
+
+```bash
+# 1. Calibrate (first time only)
+python camera_calibration.py --mode live
+
+# 2. Track live
+python live_tracker.py --marker-size 0.05
+
+# 3. Analyze
+python trajectory_analysis.py live_trajectory.csv --full-report
+```
+
+### Workflow 2: Video Processing & Analysis
+
+```bash
+# 1. Detect dictionary type
+python test_aruco_dictionaries.py video.mp4
+
+# 2. Process video
+python aruco_tracker.py video.mp4 --marker-size 0.05
+
+# 3. Analyze trajectory
+python trajectory_analysis.py trajectory_data.csv --full-report
 
 # 4. Create annotated video
-python visualize_on_video.py sample_video.mp4 --output output_annotated.mp4
+python visualize_on_video.py video.mp4 --output annotated.mp4
 ```
 
-## Understanding the Coordinate System
+### Workflow 3: Research Study
 
-The 3D coordinate system used:
-- **X-axis (Red)**: Points to the right of the marker
-- **Y-axis (Green)**: Points downward from the marker
-- **Z-axis (Blue)**: Points away from the camera (depth)
+```bash
+# 1. Calibrate camera
+python camera_calibration.py --mode live --num-images 30
 
-The origin (0,0,0) is at the top-left corner of the ArUco marker.
+# 2. Multiple recordings
+python live_tracker.py --output trial1.csv
+python live_tracker.py --output trial2.csv
+python live_tracker.py --output trial3.csv
 
-## Troubleshooting
+# 3. Analyze each trial
+python trajectory_analysis.py trial1.csv --full-report --output-dir trial1_analysis
+python trajectory_analysis.py trial2.csv --full-report --output-dir trial2_analysis
+python trajectory_analysis.py trial3.csv --full-report --output-dir trial3_analysis
 
-### No markers detected
-- Ensure the marker is clearly visible in the video
-- Check that `ARUCO_DICT_TYPE` matches your marker's dictionary
-- Verify marker size is set correctly
-
-### Inaccurate 3D measurements
-- Calibrate your camera properly
-- Ensure marker size in config matches physical marker size
-- Check that markers are not too close or too far from camera
-
-### Video processing is slow
-- Increase `FRAME_SKIP` in config.py to process every Nth frame
-- Use a lower resolution video
-- Close other applications to free up CPU
+# 4. Compare in Excel/Python using exported CSV files
+```
 
 ## File Structure
 
 ```
 tagCalibration/
-├── venv/                          # Virtual environment
-├── config.py                      # Configuration parameters
-├── aruco_tracker.py              # Main tracking script
-├── visualize_trajectory.py       # 3D trajectory visualization
-├── visualize_on_video.py         # Video overlay script
-├── requirements.txt               # Python dependencies
-├── README.md                      # This file
-├── trajectory_data.csv           # Generated trajectory data
-└── output_with_3d_coords.mp4     # Generated annotated video
+├── venv/                           # Virtual environment
+├── config.py                       # Configuration parameters
+│
+├── # Tracking Scripts
+├── live_tracker.py                 # Live camera tracking
+├── aruco_tracker.py                # Video file processing
+│
+├── # Calibration Scripts
+├── camera_calibration.py           # Camera calibration module
+├── generate_checkerboard.py        # Checkerboard pattern generator
+│
+├── # Analysis Scripts
+├── trajectory_analysis.py          # Comprehensive motion analysis
+├── visualize_trajectory.py         # 3D plots and animations
+├── visualize_on_video.py           # Video overlay
+│
+├── # Utility Scripts
+├── test_aruco_dictionaries.py      # Dictionary detection
+│
+├── # Documentation
+├── README.md                       # This file
+├── CALIBRATION_GUIDE.md            # Camera calibration guide
+├── LIVE_TRACKER_GUIDE.md           # Live tracker guide
+├── ANALYSIS_GUIDE.md               # Trajectory analysis guide
+├── TIMESTAMP_FEATURE.md            # Timestamp documentation
+│
+├── # Dependencies
+├── requirements.txt                # Python packages
+│
+└── # Generated Files (examples)
+    ├── calibration_data.npz        # Camera calibration backup
+    ├── checkerboard.png            # Calibration pattern
+    ├── live_trajectory.csv         # Trajectory data
+    ├── live_animation.mp4          # 3D animation
+    └── analysis_output/            # Analysis results
+        ├── *.png                   # Analysis plots
+        └── analysis_metrics.csv    # Calculated metrics
 ```
+
+## Troubleshooting
+
+### Camera Calibration Issues
+
+**Problem:** No checkerboard detected
+
+**Solutions:**
+- Ensure checkerboard size matches (`--checkerboard 9x6`)
+- Print at 100% scale (not fit to page)
+- Verify checkerboard is flat and rigid
+- Improve lighting
+- Check focus
+
+**Problem:** High reprojection error (> 1.0)
+
+**Solutions:**
+- Collect more images (25-30 recommended)
+- Verify square size measurement (use ruler)
+- Ensure varied angles and positions
+- Check printer settings (actual size)
+
+### Tracking Issues
+
+**Problem:** No markers detected
+
+**Solutions:**
+- Run `test_aruco_dictionaries.py` to find correct dictionary
+- Update `ARUCO_DICT_TYPE` in config.py
+- Verify marker size setting
+- Improve lighting
+- Ensure marker is in focus
+
+**Problem:** Inaccurate 3D measurements
+
+**Solutions:**
+- Calibrate camera with `camera_calibration.py`
+- Verify marker size is correct (measure with ruler)
+- Check camera calibration quality (reprojection error < 1.0)
+- Ensure marker is flat and rigid
+
+### Analysis Issues
+
+**Problem:** Missing timestamp column
+
+**Solutions:**
+- Re-record with updated scripts (all now include timestamps)
+- Use `live_tracker.py` or `aruco_tracker.py`
+
+**Problem:** High noise in velocity/acceleration
+
+**Solutions:**
+- Analysis script applies automatic smoothing
+- Improve camera calibration
+- Use stable camera mount
+- Increase marker size
+- Better lighting
+
+## Performance Tips
+
+1. **Fast Processing**: Increase `FRAME_SKIP` in config.py
+2. **Better Accuracy**: Use larger markers and closer distances
+3. **Smooth Data**: Analysis script automatically applies smoothing
+4. **Multiple Markers**: Script handles multiple markers automatically
+5. **Large Videos**: Process in segments or increase sample interval
+
+## Best Practices
+
+### For Calibration:
+✅ Use rigid, flat checkerboard
+✅ Collect 20-30 images
+✅ Vary angles and distances
+✅ Cover entire camera view
+✅ Measure square size accurately
+
+### For Tracking:
+✅ Calibrate camera first
+✅ Use good, even lighting
+✅ Print high-quality markers
+✅ Keep marker flat and rigid
+✅ Measure marker size precisely
+
+### For Analysis:
+✅ Review summary statistics first
+✅ Check for outliers in plots
+✅ Verify physical plausibility
+✅ Export to CSV for detailed analysis
+✅ Compare multiple trials
+
+## Integration Examples
+
+### Python Analysis
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load analysis results
+df = pd.read_csv('analysis_output/analysis_metrics.csv')
+
+# Calculate average speed
+avg_speed = df['speed'].mean()
+print(f"Average speed: {avg_speed:.3f} m/s")
+
+# Plot custom analysis
+plt.plot(df['timestamp'], df['speed'])
+plt.xlabel('Time (s)')
+plt.ylabel('Speed (m/s)')
+plt.title('Speed Over Time')
+plt.grid(True)
+plt.show()
+
+# Angular analysis
+total_rotation_x = df['rx_deg'].max() - df['rx_deg'].min()
+print(f"Total X rotation: {total_rotation_x:.1f}°")
+```
+
+### Excel Integration
+
+1. Open `analysis_metrics.csv` in Excel
+2. Create pivot tables for statistics
+3. Generate custom charts
+4. Use formulas for calculations
+5. Export to other formats
+
+## Advanced Features
+
+### Multi-Marker Tracking
+
+All scripts support multiple markers automatically:
+
+```bash
+# Track multiple markers
+python live_tracker.py
+
+# Analyze specific marker
+python trajectory_analysis.py data.csv --marker-id 0
+
+# Or analyze all markers together
+python trajectory_analysis.py data.csv --full-report
+```
+
+### Custom Checkerboard Patterns
+
+```bash
+# Large pattern for distant calibration
+python generate_checkerboard.py --width 11 --height 8 --square-size 30
+
+# Small pattern for close-up
+python generate_checkerboard.py --width 7 --height 5 --square-size 20
+```
+
+### Batch Processing
+
+```bash
+# Process multiple videos
+for video in *.mp4; do
+    python aruco_tracker.py "$video" --output "${video%.mp4}.csv"
+    python trajectory_analysis.py "${video%.mp4}.csv" --full-report --output-dir "${video%.mp4}_analysis"
+done
+```
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| `README.md` | Main documentation (this file) |
+| `CALIBRATION_GUIDE.md` | Camera calibration instructions |
+| `LIVE_TRACKER_GUIDE.md` | Live tracking detailed guide |
+| `ANALYSIS_GUIDE.md` | Trajectory analysis guide |
+| `TIMESTAMP_FEATURE.md` | Timestamp feature documentation |
 
 ## Dependencies
 
-- **opencv-contrib-python**: ArUco marker detection and pose estimation
-- **numpy**: Numerical operations
-- **matplotlib**: 3D plotting and visualization
+All dependencies are listed in `requirements.txt`:
 
-## Camera Calibration Guide
-
-For accurate 3D pose estimation, proper camera calibration is essential:
-
-1. Print a checkerboard calibration pattern
-2. Record a video moving the checkerboard in different positions
-3. Use OpenCV's calibration tools to extract camera matrix and distortion coefficients
-4. Update `config.py` with your calibration data
-
-Alternatively, you can use online camera calibration tools or follow OpenCV tutorials.
-
-## Tips for Best Results
-
-1. **Lighting**: Ensure good, even lighting on the marker
-2. **Marker Quality**: Use high-quality printed markers with clear borders
-3. **Camera Stability**: Use a stable camera or tripod for consistent results
-4. **Marker Size**: Larger markers are easier to detect from greater distances
-5. **Frame Rate**: Higher frame rate videos provide smoother trajectories
-6. **Calibration**: Always calibrate your camera for accurate measurements
+```
+opencv-contrib-python  # ArUco detection and calibration
+numpy                  # Numerical operations
+matplotlib             # Plotting and visualization
+pandas                 # Data analysis and manipulation
+scipy                  # Signal processing and smoothing
+```
 
 ## License
 
 This project is open source and available for educational and research purposes.
+
+## Support
+
+For issues, questions, or feature requests, please refer to the documentation files:
+- Calibration issues: See `CALIBRATION_GUIDE.md`
+- Tracking issues: See `LIVE_TRACKER_GUIDE.md`
+- Analysis questions: See `ANALYSIS_GUIDE.md`
+
+---
+
+**Version:** 2.0
+**Features:** Camera Calibration | Live Tracking | Video Processing | Trajectory Analysis | 3D Visualization
+**Timestamp Support:** ✅ All modules
+**Multi-Marker Support:** ✅ All modules
+**Automatic Calibration:** ✅ Included
