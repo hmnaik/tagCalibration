@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import argparse
 from pathlib import Path
+from aruco_utils import ArucoInitializer
 
 
 def test_all_dictionaries(video_path, num_frames=50):
@@ -55,9 +56,7 @@ def test_all_dictionaries(video_path, num_frames=50):
 
     for dict_name in aruco_dicts:
         try:
-            aruco_dict = cv2.aruco.getPredefinedDictionary(getattr(cv2.aruco, dict_name))
-            aruco_params = cv2.aruco.DetectorParameters()
-            detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
+            aruco_dict, aruco_params, detector = ArucoInitializer.initialize_detector(dict_name)
 
             detected_markers = set()
             frames_with_detection = 0

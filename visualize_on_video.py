@@ -8,6 +8,7 @@ import numpy as np
 import argparse
 from pathlib import Path
 import config
+from aruco_utils import ArucoInitializer, CameraConfig, VisualizationUtils
 
 
 class VideoOverlay:
@@ -21,24 +22,14 @@ class VideoOverlay:
             dist_coeffs: Camera distortion coefficients
         """
         # Use config values if not provided
-        self.marker_size = marker_size if marker_size is not None else config.MARKER_SIZE
-
-        if camera_matrix is not None:
-            self.camera_matrix = np.array(camera_matrix, dtype=np.float32)
-        else:
-            self.camera_matrix = np.array(config.CAMERA_MATRIX, dtype=np.float32)
-
-        if dist_coeffs is not None:
-            self.dist_coeffs = np.array(dist_coeffs, dtype=np.float32)
-        else:
-            self.dist_coeffs = np.array(config.DIST_COEFFS, dtype=np.float32)
+        self.marker_size, self.camera_matrix, self.dist_coeffs = CameraConfig.load_camera_params(
+            marker_size, camera_matrix, dist_coeffs
+        )
 
         # Get ArUco dictionary
-        aruco_dict_name = config.ARUCO_DICT_TYPE
-        self.aruco_dict = cv2.aruco.getPredefinedDictionary(
-            getattr(cv2.aruco, aruco_dict_name)
+        self.aruco_dict, self.aruco_params = ArucoInitializer.initialize_params_only(
+            config.ARUCO_DICT_TYPE
         )
-        self.aruco_params = cv2.aruco.DetectorParameters()
 
     def draw_axis(self, frame, rvec, tvec, length=0.03):
         """
@@ -50,28 +41,9 @@ class VideoOverlay:
             tvec: Translation vector
             length: Length of the axes in meters
         """
-        # Define 3D points for the axes
-        axis_points = np.float32([
-            [0, 0, 0],
-            [length, 0, 0],  # X-axis (red)
-            [0, length, 0],  # Y-axis (green)
-            [0, 0, length]   # Z-axis (blue)
-        ]).reshape(-1, 3)
-
-        # Project 3D points to 2D image plane
-        img_points, _ = cv2.projectPoints(
-            axis_points, rvec, tvec, self.camera_matrix, self.dist_coeffs
+        return VisualizationUtils.draw_axis(
+            frame, rvec, tvec, self.camera_matrix, self.dist_coeffs, length
         )
-
-        img_points = img_points.astype(int)
-
-        # Draw axes
-        origin = tuple(img_points[0].ravel())
-        frame = cv2.line(frame, origin, tuple(img_points[1].ravel()), (0, 0, 255), 3)  # X (red)
-        frame = cv2.line(frame, origin, tuple(img_points[2].ravel()), (0, 255, 0), 3)  # Y (green)
-        frame = cv2.line(frame, origin, tuple(img_points[3].ravel()), (255, 0, 0), 3)  # Z (blue)
-
-        return frame
 
     def draw_cube(self, frame, rvec, tvec, size=None):
         """
@@ -140,48 +112,10 @@ class VideoOverlay:
         Returns:
             Annotated frame
         """
-        if ids is None:
-            return frame
-
-        # Draw detected markers
-        frame = cv2.aruco.drawDetectedMarkers(frame, corners, ids)
-
-        for i, marker_id in enumerate(ids):
-            rvec = rvecs[i][0]
-            tvec = tvecs[i][0]
-
-            # Draw 3D axes
-            frame = self.draw_axis(frame, rvec, tvec, length=self.marker_size * 0.6)
-
-            # Draw cube (optional)
-            # frame = self.draw_cube(frame, rvec, tvec)
-
-            # Get marker corner for text placement
-            corner = corners[i][0][0]  # Top-left corner
-            text_pos = (int(corner[0]), int(corner[1]) - 10)
-
-            # Display 3D position
-            pos_text = f"ID:{marker_id[0]} X:{tvec[0]:.3f} Y:{tvec[1]:.3f} Z:{tvec[2]:.3f}m"
-
-            # Add background rectangle for better text visibility
-            (text_width, text_height), _ = cv2.getTextSize(
-                pos_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2
-            )
-            cv2.rectangle(
-                frame,
-                (text_pos[0] - 5, text_pos[1] - text_height - 5),
-                (text_pos[0] + text_width + 5, text_pos[1] + 5),
-                (0, 0, 0),
-                -1
-            )
-
-            # Draw text
-            cv2.putText(
-                frame, pos_text, text_pos,
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2
-            )
-
-        return frame
+        return VisualizationUtils.annotate_marker_frame(
+            frame, corners, ids, rvecs, tvecs,
+            self.camera_matrix, self.dist_coeffs, self.marker_size
+        )
 
     def process_video(self, input_video, output_video=None, show_live=False):
         """

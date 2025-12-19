@@ -9,6 +9,7 @@ import csv
 import argparse
 from pathlib import Path
 import config
+from aruco_utils import ArucoInitializer, CameraConfig, TrajectoryIO
 
 
 class ArucoTracker:
@@ -22,24 +23,14 @@ class ArucoTracker:
             dist_coeffs: Camera distortion coefficients
         """
         # Use config values if not provided
-        self.marker_size = marker_size if marker_size is not None else config.MARKER_SIZE
-
-        if camera_matrix is not None:
-            self.camera_matrix = np.array(camera_matrix, dtype=np.float32)
-        else:
-            self.camera_matrix = np.array(config.CAMERA_MATRIX, dtype=np.float32)
-
-        if dist_coeffs is not None:
-            self.dist_coeffs = np.array(dist_coeffs, dtype=np.float32)
-        else:
-            self.dist_coeffs = np.array(config.DIST_COEFFS, dtype=np.float32)
+        self.marker_size, self.camera_matrix, self.dist_coeffs = CameraConfig.load_camera_params(
+            marker_size, camera_matrix, dist_coeffs
+        )
 
         # Get ArUco dictionary
-        aruco_dict_name = config.ARUCO_DICT_TYPE
-        self.aruco_dict = cv2.aruco.getPredefinedDictionary(
-            getattr(cv2.aruco, aruco_dict_name)
+        self.aruco_dict, self.aruco_params = ArucoInitializer.initialize_params_only(
+            config.ARUCO_DICT_TYPE
         )
-        self.aruco_params = cv2.aruco.DetectorParameters()
 
         # Storage for trajectory data
         self.trajectory_data = []
@@ -154,17 +145,7 @@ class ArucoTracker:
         Args:
             output_path: Path to output CSV file
         """
-        if not self.trajectory_data:
-            print("Warning: No trajectory data to save")
-            return
-
-        with open(output_path, 'w', newline='') as csvfile:
-            fieldnames = ['timestamp', 'frame', 'marker_id', 'x', 'y', 'z', 'rx', 'ry', 'rz']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-            writer.writeheader()
-            for data_point in self.trajectory_data:
-                writer.writerow(data_point)
+        TrajectoryIO.save_trajectory(self.trajectory_data, output_path)
 
 
 def main():
