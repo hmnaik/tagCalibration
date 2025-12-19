@@ -11,12 +11,13 @@ MARKER_SIZE = 0.05  # Marker size in meters (e.g., 0.05 = 5cm)
 # You should calibrate your camera and update these values
 # These are example values - replace with your actual calibration data
 CAMERA_MATRIX = [
-    [800, 0, 320],
-    [0, 800, 240],
-    [0, 0, 1]
+    [636.295497, 0.000000, 322.817517],
+    [0.000000, 636.712497, 255.982381],
+    [0.000000, 0.000000, 1.000000],
+]
 ]
 
-DIST_COEFFS = [0, 0, 0, 0, 0]  # Distortion coefficients [k1, k2, p1, p2, k3]
+DIST_COEFFS = [0.02806658, -0.80382847, 0.00310489, -0.00080338, 1.75826186]
 
 # Output settings
 OUTPUT_TRAJECTORY_FILE = 'trajectory_data.csv'
